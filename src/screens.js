@@ -1,4 +1,4 @@
-import { state } from './state.js';
+import { state, setUserName } from './state.js';
 import { parseTimesheet } from './parser.js';
 import { readPhotos } from './exif.js';
 import { matchPhotos, sameDay, classifyPhotoType, fmtTime } from './match.js';
@@ -30,6 +30,15 @@ const REASON_LABELS = {
 };
 
 const fmtDate = (d) => d.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
+
+function buildFilename(state) {
+  const start = state.timesheet?.period?.start;
+  const month = start ? start.toLocaleDateString('th-TH', { month: 'long' }) : '';
+  const year = start ? start.toLocaleDateString('th-TH', { year: 'numeric' }) : '';
+  const name = (state.userName || 'unnamed').replace(/[\\/:*?"<>|]/g, '').trim() || 'unnamed';
+  const parts = [name, 'รายงานการเข้าออกงาน', month, year].filter(Boolean);
+  return parts.join('-') + '.pdf';
+}
 const dateKey = (d) => d.toISOString().slice(0, 10);
 
 function el(html) {
@@ -56,12 +65,14 @@ function importScreen() {
     <div>
       <div class="card">
         <h2>นำเข้าตารางเวลาจาก HR</h2>
-        <p class="muted">อัปโหลดไฟล์ PDF ตารางเวลาประจำเดือนที่ได้รับจาก HR</p>
+        <label for="userName">ชื่อพนักงาน</label>
+        <input type="text" id="userName" placeholder="ชื่อ-นามสกุล" value="${escape(state.userName || '')}">
+        <p class="muted small" style="margin-top:.35rem;margin-bottom:1rem">ใช้สำหรับชื่อไฟล์ PDF ที่ส่งให้ HR</p>
         <label class="upload">
           <input type="file" accept="application/pdf" id="pdfInput">
           <div class="icon">📄</div>
           <div class="primary">แตะเพื่อเลือกไฟล์ PDF</div>
-          <div class="secondary">รองรับเฉพาะ PDF จาก HR</div>
+          <div class="secondary">PDF ตารางเวลาประจำเดือนที่ได้รับจาก HR</div>
         </label>
         <div id="parseStatus" class="muted" style="margin-top:1rem"></div>
       </div>
@@ -92,6 +103,9 @@ function importScreen() {
   root.querySelector('#pdfInput').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) handlePDF(file, root);
+  });
+  root.querySelector('#userName').addEventListener('input', (e) => {
+    setUserName(e.target.value.trim());
   });
 
   // If a PDF was shared into the app from another app, auto-load it now.
@@ -319,8 +333,7 @@ function exportScreen() {
     try {
       const doc = await exportPDF(state);
       blob = doc.output('blob');
-      const period = state.timesheet?.period?.start?.toISOString().slice(0, 7) || 'timesheet';
-      filename = `justification-${period}.pdf`;
+      filename = buildFilename(state);
       const buf = await blob.arrayBuffer();
       preview.hidden = false;
       await renderPDFPreview(buf, preview);
