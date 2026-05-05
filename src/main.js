@@ -8,4 +8,23 @@ if ('serviceWorker' in navigator) {
 }
 
 state.go = (step) => { state.step = step; render(); };
-state.go('import');
+
+async function pickupSharedFile() {
+  const params = new URLSearchParams(location.search);
+  if (!params.has('shared')) return null;
+  history.replaceState({}, '', location.pathname);
+  try {
+    const cache = await caches.open('bms-ts-shared');
+    const res = await cache.match('shared-file');
+    if (!res) return null;
+    await cache.delete('shared-file');
+    const blob = await res.blob();
+    const filename = decodeURIComponent(res.headers.get('X-Filename') || 'shared.pdf');
+    return new File([blob], filename, { type: 'application/pdf' });
+  } catch { return null; }
+}
+
+(async () => {
+  state.sharedFile = await pickupSharedFile();
+  state.go('import');
+})();

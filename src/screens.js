@@ -67,9 +67,7 @@ function importScreen() {
       </div>
     </div>
   `);
-  root.querySelector('#pdfInput').addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  async function handlePDF(file, root) {
     const status = root.querySelector('#parseStatus');
     status.textContent = 'กำลังอ่านไฟล์ PDF…';
     try {
@@ -89,7 +87,20 @@ function importScreen() {
     } catch (err) {
       status.innerHTML = `<span style="color:var(--danger)">อ่านไฟล์ไม่สำเร็จ: ${escape(err.message)}</span>`;
     }
+  }
+
+  root.querySelector('#pdfInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) handlePDF(file, root);
   });
+
+  // If a PDF was shared into the app from another app, auto-load it now.
+  if (state.sharedFile) {
+    const f = state.sharedFile;
+    state.sharedFile = null;
+    handlePDF(f, root);
+  }
+
   return root;
 }
 
