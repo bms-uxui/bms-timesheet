@@ -1,6 +1,7 @@
 import './polyfills.js';
 import { state } from './state.js';
 import { render } from './screens.js';
+import { showTutorial, showTutorialFirstTime } from './tutorial.js';
 import './style.css';
 
 if ('serviceWorker' in navigator) {
@@ -27,4 +28,6 @@ async function pickupSharedFile() {
 (async () => {
   state.sharedFile = await pickupSharedFile();
   state.go('import');
+  document.getElementById('helpBtn')?.addEventListener('click', showTutorial);
+  showTutorialFirstTime();
 })();
