@@ -112,16 +112,17 @@ function drawColor(doc, hex) {
 
 function header(doc, state) {
   fillColor(doc, '#0ea5e9');
-  doc.rect(0, 0, PAGE_W, 30, 'F');
+  doc.rect(0, 0, PAGE_W, 34, 'F');
   setColor(doc, '#ffffff');
-  doc.setFont(FONT, 'bold').setFontSize(16);
-  doc.text('ใบชี้แจงเวลาทำงาน', MARGIN, 13);
-  doc.setFont(FONT, 'normal').setFontSize(10);
-  const period = state.timesheet?.period
-    ? `${fmtDate(state.timesheet.period.start)}  —  ${fmtDate(state.timesheet.period.end)}`
+  doc.setFont(FONT, 'bold').setFontSize(15);
+  doc.text('รายงานสรุปการเข้า-ออกงาน', MARGIN, 13);
+  doc.setFont(FONT, 'normal').setFontSize(12);
+  const monthYear = state.timesheet?.period?.start
+    ? state.timesheet.period.start.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' })
     : '';
-  doc.text(period, MARGIN, 20);
-  doc.text(`มีวันที่ต้องชี้แจง ${state.missingDays.length} วัน`, MARGIN, 26);
+  doc.text(`ประจำเดือน ${monthYear}`, MARGIN, 21);
+  doc.setFontSize(9);
+  doc.text(`มีวันที่ต้องชี้แจง ${state.missingDays.length} วัน`, MARGIN, 28);
   setColor(doc, '#000000');
 }
 
@@ -141,7 +142,7 @@ function ensureSpace(doc, y, needed, state) {
   if (y + needed > PAGE_H - MARGIN) {
     doc.addPage();
     header(doc, state);
-    return 36;
+    return 40;
   }
   return y;
 }
@@ -191,7 +192,7 @@ export async function exportPDF(state) {
   const doc = new jsPDF();
   await registerFonts(doc);
   header(doc, state);
-  let y = 38;
+  let y = 40;
 
   const PHOTO_BLOCK_H = PHOTO_H + 14; // photo + label band
   const HEADER_BLOCK_H = 36;          // date row + HR/staff comparison + reason
