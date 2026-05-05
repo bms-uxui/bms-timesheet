@@ -1,0 +1,12 @@
+{
+  "name": "ใบชี้แจงเวลาทำงาน BMS",
+  "short_name": "ใบชี้แจง",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0ea5e9",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
