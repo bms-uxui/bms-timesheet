@@ -1,35 +1,58 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import * as Sharing from 'expo-sharing';
 import { useAppState } from '../core/state';
 import { Card, Button, Callout } from '../components/ui';
 import { theme } from '../lib/theme';
+import { generatePDF } from '../lib/exporter';
 
 export default function ExportScreen({ navigation }) {
-  const { userName, timesheet, missingDays, resolutions } = useAppState();
-  const [status, setStatus] = useState('กดปุ่ม "สร้าง PDF" เพื่อดูตัวอย่างเอกสาร');
-  const [working, setWorking] = useState(false);
-  const [pdfUri, setPdfUri] = useState(null);
+  const state = useAppState();
+  const [status, setStatus] = useState('⏳ กำลังสร้าง PDF…');
+  const [error, setError] = useState(null);
+  const [working, setWorking] = useState(true);
+  const result = useRef(null);
 
-  const generate = async () => {
-    setWorking(true);
-    setStatus('⏳ กำลังสร้าง PDF…');
-    try {
-      throw new Error('การสร้าง PDF ยังไม่พร้อม (กำลังพัฒนา)');
-    } catch (e) {
-      setStatus(`❌ ${e.message}`);
-    } finally {
-      setWorking(false);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await generatePDF(state);
+        if (cancelled) return;
+        result.current = r;
+        setStatus(`✅ พร้อมส่ง: ${r.filename}`);
+      } catch (e) {
+        if (cancelled) return;
+        setError(e.message);
+      } finally {
+        if (!cancelled) setWorking(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const share = async () => {
+    if (!result.current) return;
+    const can = await Sharing.isAvailableAsync();
+    if (!can) {
+      setError('อุปกรณ์นี้ไม่รองรับการแชร์');
+      return;
     }
+    await Sharing.shareAsync(result.current.uri, {
+      mimeType: 'application/pdf',
+      UTI: 'com.adobe.pdf',
+      dialogTitle: 'ส่งใบชี้แจงให้ HR',
+    });
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Card>
         <Text style={styles.h2}>ตรวจสอบและส่งออก</Text>
-        <Text style={styles.help}>สร้าง PDF เพื่อส่งให้ HR ผ่านอีเมลหรือแชท</Text>
-        <Callout variant={status.startsWith('❌') ? 'error' : 'info'}>{status}</Callout>
-        <View style={{ marginTop: 12 }}>
-          <Button title={working ? 'กำลังสร้าง…' : 'สร้าง PDF'} onPress={generate} disabled={working} />
+        <Text style={styles.help}>สร้างไฟล์ PDF เพื่อส่งให้ HR ผ่านอีเมลหรือแชท</Text>
+        <Callout variant={error ? 'error' : 'info'}>{error ? `❌ ${error}` : status}</Callout>
+        <View style={{ marginTop: 12, gap: 8 }}>
+          <Button title="แชร์ให้ HR" onPress={share} disabled={working || !!error} />
         </View>
       </Card>
       <Button title="← ย้อนกลับ" variant="ghost" onPress={() => navigation.goBack()} />
