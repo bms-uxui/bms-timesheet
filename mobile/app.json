@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "BMS Timesheet",
+    "slug": "bms-timesheet",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0ea5e9"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bms.timesheet",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "ใช้สำหรับสแกนรูปสแกนเนอร์ใบหน้าจากคลังรูปภาพของคุณ เพื่อใช้ประกอบใบชี้แจงเวลาทำงาน",
+        "NSPhotoLibraryAddUsageDescription": "ใช้สำหรับบันทึกใบชี้แจงเวลาทำงานเป็น PDF ลงในคลังรูปภาพ"
+      }
+    },
+    "android": {
+      "package": "com.bms.timesheet",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0ea5e9"
+      },
+      "edgeToEdgeEnabled": true,
+      "permissions": ["READ_MEDIA_IMAGES", "READ_EXTERNAL_STORAGE"]
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-font",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "ใช้สำหรับสแกนรูปสแกนเนอร์ใบหน้าจากคลังรูปภาพของคุณ",
+          "savePhotosPermission": "ใช้สำหรับบันทึก PDF ลงในคลังรูปภาพ",
+          "isAccessMediaLocationEnabled": true
+        }
+      ]
+    ]
+  }
+}
